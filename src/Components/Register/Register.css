@@ -1,7 +1,17 @@
-*{
+* {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-image: url('../Imagenes/fondo.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
 }
 
 .register-container {
@@ -75,13 +85,13 @@ button:hover {
     margin-top: 15px;
     text-align: center;
 }
-  
+
 .login-link a {
     color: #007bff;
     text-decoration: none;
     font-weight: bold;
 }
-  
+
 .login-link a:hover {
     color: #0056b3;
     text-decoration: underline;
@@ -93,9 +103,9 @@ button:hover {
     justify-content: center;
     align-items: center;
     margin-top: 10px;
-  }
-  
-  .role-options label {
+}
+
+.role-options label {
     font-weight: normal;
     font-size: 14px;
     color: #333;
@@ -107,15 +117,13 @@ button:hover {
     background-color: #f0f0f0;
     border-radius: 4px;
     transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .role-options label:hover {
+}
+
+.role-options label:hover {
     background-color: #007bff;
     color: white;
-  }
-  
-  .role-options input[type="radio"] {
+}
+
+.role-options input[type="radio"] {
     margin-right: 5px;
-  }
-  
-  
+}

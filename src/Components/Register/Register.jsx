@@ -11,6 +11,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,8 +29,16 @@ const Register = () => {
           TipoRol: role
         });
 
-        console.log('Registro exitoso:', { username, email, password, role });
+        setSuccessMessage('¡Registro exitoso!');
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setRole('');
         setError('');
+
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 2500);
       } catch (error) {
         setError('Error al registrar. Inténtelo de nuevo.');
         console.error('Error al registrar:', error);
@@ -41,6 +50,7 @@ const Register = () => {
     <div className="register-container">
       <h2>Regístrate</h2>
       {error && <p className="error">{error}</p>}
+      {successMessage && <p className="success">{successMessage}</p>}
       <form onSubmit={handleSubmit}>
         <div className="input-group">
           <label htmlFor="username">Nombre de usuario:</label>
@@ -110,6 +120,7 @@ const Register = () => {
 };
 
 export default Register;
+
 
 
 
