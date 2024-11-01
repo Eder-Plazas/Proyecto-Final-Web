@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../Firebase/Firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import "./Login.css";
+import './Login.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,10 +16,10 @@ const Login = () => {
       setError('Por favor, complete todos los campos.');
     } else {
       try {
-
         await signInWithEmailAndPassword(auth, username, password);
-        console.log('Inicio de sesión exitoso:', { username, password });
         setError('');
+        localStorage.setItem('username', username);
+        navigate('/home');
       } catch (error) {
         setError('Error al iniciar sesión. Verifique sus credenciales.');
         console.error('Error al iniciar sesión:', error);
@@ -63,6 +64,8 @@ const Login = () => {
 };
 
 export default Login;
+
+
 
 
 
