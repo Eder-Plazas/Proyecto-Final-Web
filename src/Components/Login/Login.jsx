@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import "./Login.css";
 
 const Login = () => {
-  const [username, setUsername] = useState('');  // Usaremos username como correo electrónico
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -15,8 +15,8 @@ const Login = () => {
       setError('Por favor, complete todos los campos.');
     } else {
       try {
-        // Inicia sesión con Firebase Authentication
-        await signInWithEmailAndPassword(auth, username, password); // username representa el correo
+
+        await signInWithEmailAndPassword(auth, username, password);
         console.log('Inicio de sesión exitoso:', { username, password });
         setError('');
       } catch (error) {
@@ -32,7 +32,7 @@ const Login = () => {
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="input-group">
-          <label htmlFor="username">Correo electrónico:</label> {/* Cambiamos el label para indicar correo */}
+          <label htmlFor="username">Correo electrónico:</label> 
           <input
             type="text"
             id="username"
