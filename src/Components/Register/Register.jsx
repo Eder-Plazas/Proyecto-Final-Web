@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth, db } from '../Firebase/Firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -12,6 +12,13 @@ const Register = () => {
   const [role, setRole] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    document.body.classList.add('register');
+    return () => {
+      document.body.classList.remove('register');
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -120,6 +127,7 @@ const Register = () => {
 };
 
 export default Register;
+
 
 
 

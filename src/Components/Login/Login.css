@@ -5,15 +5,19 @@
 }
 
 body {
-  background-image: url("../Imagenes/fondo.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+  background-color: #fff;
   font-family: 'Arial', sans-serif;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+body.login {
+  background-image: url('../Imagenes/fondo.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
 .login-container {
@@ -146,3 +150,4 @@ button:hover {
     font-size: 12px;
   }
 }
+
