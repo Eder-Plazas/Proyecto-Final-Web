@@ -1,33 +1,34 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../Components/Firebase/Firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import "./HomePage.css";
 
 const HomePage = () => {
   const [username, setUsername] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsername = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        try {
-          const docRef = doc(db, "usuarios", user.uid);
-          const docSnap = await getDoc(docRef);
+    const fetchUserData = async () => {
+      const currentUser = auth.currentUser;
 
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            setUsername(userData.NombreUsuario || 'Usuario');
-          } else {
-            console.log("No se encontró el documento del usuario.");
+      if (currentUser) {
+        const userDoc = doc(db, "usuarios", currentUser.uid);
+        const userSnap = await getDoc(userDoc);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setUsername(userData.NombreUsuario);
+
+          if (userData.TipoRol === 'administrador') {
+            navigate('/homepageadmin');
           }
-        } catch (error) {
-          console.error("Error al obtener el nombre de usuario:", error);
         }
       }
     };
 
-    fetchUsername();
-  }, []);
+    fetchUserData();
+  }, [navigate]);
 
   return (
     <div className="homepage-container">
@@ -37,6 +38,7 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
 
 
 
