@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../Components/Firebase/Firebase';
-import Navbar from '../../Components/NavBarAdmin/NavBarAdmin'; // Asegúrate de que la ruta sea correcta
 import "./HomepageAdmin.css";
 
 const HomepageAdmin = () => {
   const [adminUsername, setAdminUsername] = useState('');
   const [error, setError] = useState('');
+  const [activeSection, setActiveSection] = useState('config');
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -32,15 +32,53 @@ const HomepageAdmin = () => {
     fetchAdminData();
   }, []);
 
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+  };
+
   return (
-    <div>
-      <Navbar /> {/* Agregar la barra de navegación */}
-      <h1>Página del administrador: {adminUsername}</h1>
+    <div className="container">
+      <div className="menu">
+        <button onClick={() => handleSectionChange("config")}>
+          Configuración
+        </button>
+        <button onClick={() => handleSectionChange("viewUsers")}>
+          Ver Usuarios
+        </button>
+        <button className="secondary" onClick={() => handleSectionChange("logout")}>
+          Cerrar Sesión
+        </button>
+      </div>
+
+      <div className="content">
+        <h1>Página del administrador: {adminUsername}</h1>
+        {error && <p className="error">{error}</p>}
+        
+        {activeSection === "config" && (
+          <div>
+            <h2>Configuración de la página</h2>
+          </div>
+        )}
+        {activeSection === "viewUsers" && (
+          <div>
+            <h2>Lista de Usuarios</h2>
+          </div>
+        )}
+        {activeSection === "logout" && (
+          <div>
+            <h2>Cerrando Sesión...</h2>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default HomepageAdmin;
+
+
+
+
 
 
 
