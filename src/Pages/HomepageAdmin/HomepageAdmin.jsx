@@ -4,11 +4,6 @@ import { db } from '../../Components/Firebase/Firebase';
 import { getAuth, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 import './HomepageAdmin.css';
 
 const HomepageAdmin = () => {
@@ -19,7 +14,7 @@ const HomepageAdmin = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
-  const [openConfirm, setOpenConfirm] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const navigate = useNavigate();
   const auth = getAuth();
@@ -102,20 +97,21 @@ const HomepageAdmin = () => {
     }
   };
 
+  const confirmDeleteUser = (userId) => {
+    setShowDeleteConfirmation(true);
+    setUserToDelete(userId);
+  };
+
   const handleDeleteUser = async () => {
     try {
-      await deleteDoc(doc(db, 'usuarios', userToDelete.id));
-      setOpenConfirm(false);
+      await deleteDoc(doc(db, 'usuarios', userToDelete));
+      setShowDeleteConfirmation(false);
+      setUserToDelete(null);
       fetchAllUsers();
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
       setError('Error al eliminar usuario.');
     }
-  };
-
-  const confirmDeleteUser = (user) => {
-    setUserToDelete(user);
-    setOpenConfirm(true);
   };
 
   return (
@@ -149,7 +145,7 @@ const HomepageAdmin = () => {
                     <strong>Rol:</strong> {user.TipoRol} 
                     <br />
                     <Button variant="contained" onClick={() => openModal(user)}>Editar</Button>
-                    <Button variant="contained" color="secondary" onClick={() => confirmDeleteUser(user)}>Eliminar</Button>
+                    <Button variant="contained" color="secondary" onClick={() => confirmDeleteUser(user.id)}>Eliminar</Button>
                     <hr />
                   </li>
                 ))}
@@ -176,41 +172,36 @@ const HomepageAdmin = () => {
                 value={currentUser.Correo || ''} 
                 onChange={(e) => setCurrentUser({ ...currentUser, Correo: e.target.value })} 
               />
-              <input 
-                type="text" 
-                placeholder="Rol" 
-                value={currentUser.TipoRol || ''} 
-                onChange={(e) => setCurrentUser({ ...currentUser, TipoRol: e.target.value })} 
-              />
+              <select
+                value={currentUser.TipoRol || 'investigador'}
+                onChange={(e) => setCurrentUser({ ...currentUser, TipoRol: e.target.value })}
+              >
+                <option value="investigador">Investigador</option>
+                <option value="colaborador">Colaborador</option>
+                <option value="administrador">Administrador</option>
+              </select>
               <Button variant="contained" onClick={handleSaveUser}>{isEditing ? 'Guardar Cambios' : 'Crear Usuario'}</Button>
               <Button variant="outlined" onClick={closeModal}>Cancelar</Button>
             </div>
           </div>
         )}
 
-        <Dialog
-          open={openConfirm}
-          onClose={() => setOpenConfirm(false)}
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
-        >
-          <DialogTitle id="confirm-dialog-title">¿Estás seguro?</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="confirm-dialog-description">
-              ¿Seguro que quieres eliminar a este usuario? Esta acción no se puede deshacer.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenConfirm(false)} color="primary">Cancelar</Button>
-            <Button onClick={handleDeleteUser} color="secondary">Eliminar</Button>
-          </DialogActions>
-        </Dialog>
+        {showDeleteConfirmation && (
+          <div className="modal">
+            <div className="modal-content">
+              <h3>¿Estás seguro de que deseas eliminar este usuario?</h3>
+              <Button variant="contained" color="secondary" onClick={handleDeleteUser}>Eliminar</Button>
+              <Button variant="outlined" onClick={() => setShowDeleteConfirmation(false)}>Cancelar</Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default HomepageAdmin;
+
 
 
 
