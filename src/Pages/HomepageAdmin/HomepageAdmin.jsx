@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../Components/Firebase/Firebase';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import './HomepageAdmin.css';
@@ -84,16 +84,32 @@ const HomepageAdmin = () => {
 
   const handleSaveUser = async () => {
     try {
+      if (!currentUser.Contraseña && !isEditing) {
+        throw new Error('La contraseña es obligatoria para crear un usuario.');
+      }
+
       if (isEditing) {
         await updateDoc(doc(db, "usuarios", currentUser.id), currentUser);
+
+        if (currentUser.Contraseña) {
+          const userCredential = await signInWithEmailAndPassword(auth, currentUser.Correo, currentUser.Contraseña);
+          await updatePassword(userCredential.user, currentUser.Contraseña);
+        }
       } else {
-        await addDoc(collection(db, "usuarios"), currentUser);
+        const userCredential = await createUserWithEmailAndPassword(auth, currentUser.Correo, currentUser.Contraseña);
+
+        await addDoc(collection(db, "usuarios"), {
+          ...currentUser,
+          userId: userCredential.user.uid,
+        });
       }
+
       fetchAllUsers();
+
       closeModal();
     } catch (error) {
-      console.error('Error al guardar usuario:', error);
-      setError('Error al guardar usuario.');
+      console.error('Error al guardar usuario:', error.message);
+      setError(error.message || 'Error al guardar usuario.');
     }
   };
 
@@ -117,9 +133,28 @@ const HomepageAdmin = () => {
   return (
     <div className="container">
       <div className="menu">
-        <Button variant="contained" onClick={() => handleSectionChange('config')}>Configuración</Button>
-        <Button variant="contained" onClick={() => handleSectionChange('viewUsers')}>Ver Usuarios</Button>
-        <Button variant="contained" color="secondary" onClick={handleLogout} className="secondary">Cerrar Sesión</Button>
+        <Button 
+          variant={activeSection === 'config' ? "contained" : "outlined"} 
+          onClick={() => handleSectionChange('config')}
+          className={activeSection === 'config' ? "active" : ""}
+        >
+          Configuración
+        </Button>
+        <Button 
+          variant={activeSection === 'viewUsers' ? "contained" : "outlined"} 
+          onClick={() => handleSectionChange('viewUsers')}
+          className={activeSection === 'viewUsers' ? "active" : ""}
+        >
+          Ver Usuarios
+        </Button>
+        <Button 
+          variant="contained" 
+          color="secondary" 
+          onClick={handleLogout} 
+          className="secondary"
+        >
+          Cerrar Sesión
+        </Button>
       </div>
 
       <div className="content">
@@ -131,7 +166,7 @@ const HomepageAdmin = () => {
             <h2>Configuración de la página</h2>
           </div>
         )}
-        
+
         {activeSection === 'viewUsers' && (
           <div>
             <h2>Lista de Usuarios</h2>
@@ -172,6 +207,12 @@ const HomepageAdmin = () => {
                 value={currentUser.Correo || ''} 
                 onChange={(e) => setCurrentUser({ ...currentUser, Correo: e.target.value })} 
               />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                value={currentUser.Contraseña || ''} 
+                onChange={(e) => setCurrentUser({ ...currentUser, Contraseña: e.target.value })} 
+              />
               <select
                 value={currentUser.TipoRol || 'investigador'}
                 onChange={(e) => setCurrentUser({ ...currentUser, TipoRol: e.target.value })}
@@ -189,7 +230,7 @@ const HomepageAdmin = () => {
         {showDeleteConfirmation && (
           <div className="modal">
             <div className="modal-content">
-              <h3>¿Estás seguro de que deseas eliminar este usuario?</h3>
+              <h2>¿Estás seguro de que quieres eliminar este usuario?</h2>
               <Button variant="contained" color="secondary" onClick={handleDeleteUser}>Eliminar</Button>
               <Button variant="outlined" onClick={() => setShowDeleteConfirmation(false)}>Cancelar</Button>
             </div>
@@ -201,15 +242,6 @@ const HomepageAdmin = () => {
 };
 
 export default HomepageAdmin;
-
-
-
-
-
-
-
-
-
 
 
 

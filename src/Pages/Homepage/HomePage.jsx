@@ -6,6 +6,7 @@ import "./HomePage.css";
 
 const HomePage = () => {
   const [username, setUsername] = useState('');
+  const [userRole, setUserRole] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,7 @@ const HomePage = () => {
         if (userSnap.exists()) {
           const userData = userSnap.data();
           setUsername(userData.NombreUsuario);
+          setUserRole(userData.TipoRol);
 
           if (userData.TipoRol === 'administrador') {
             navigate('/homepageadmin');
@@ -32,7 +34,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage-container">
-      <h2>Bienvenido, {username}!</h2>
+      <h2>Bienvenido, {userRole} {username}!</h2>
     </div>
   );
 };
