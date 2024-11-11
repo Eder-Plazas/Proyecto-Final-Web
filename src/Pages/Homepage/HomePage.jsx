@@ -67,9 +67,6 @@ const HomePage = () => {
           >
             Buscar Bitácoras
           </button>
-        </div>
-        
-        <div className="action-buttons">
           <button className="action-button" onClick={() => setShowCreateLogForm(!showCreateLogForm)}>
             {showCreateLogForm ? 'Cancelar' : 'Crear Bitácora'}
           </button>
@@ -99,6 +96,7 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
 
 
 
