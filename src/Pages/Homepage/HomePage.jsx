@@ -7,7 +7,7 @@ import './HomePage.css';
 const HomePage = () => {
   const [username, setUsername] = useState('');
   const [userRole, setUserRole] = useState('');
-  const [activeTab, setActiveTab] = useState('viewLogs');
+  const [activeTab, setActiveTab] = useState('');
   const [showCreateLogForm, setShowCreateLogForm] = useState(false);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
 
@@ -33,6 +33,7 @@ const HomePage = () => {
   const handleLogout = async () => {
     await signOut(auth);
     setIsLoggedOut(true);
+    window.location.href = "/";
   };
 
   const renderTabContent = () => {
@@ -47,6 +48,12 @@ const HomePage = () => {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Lógica para guardar la bitácora en la base de datos
+    console.log("Bitácora creada con éxito");
+  };
+
   return (
     <div className="homepage-fullscreen">
       <header className="header">
@@ -55,6 +62,9 @@ const HomePage = () => {
       
       <div className="main-container">
         <div className="tab-container">
+          <button className="action-button" onClick={() => setShowCreateLogForm(!showCreateLogForm)}>
+            {showCreateLogForm ? 'Cancelar' : 'Crear Bitácora'}
+          </button>
           <button 
             className={`tab-button ${activeTab === 'viewLogs' ? 'active' : ''}`} 
             onClick={() => setActiveTab('viewLogs')}
@@ -67,9 +77,6 @@ const HomePage = () => {
           >
             Buscar Bitácoras
           </button>
-          <button className="action-button" onClick={() => setShowCreateLogForm(!showCreateLogForm)}>
-            {showCreateLogForm ? 'Cancelar' : 'Crear Bitácora'}
-          </button>
           <button className="action-button logout-button" onClick={handleLogout}>
             Cerrar Sesión
           </button>
@@ -80,11 +87,31 @@ const HomePage = () => {
           {showCreateLogForm && !isLoggedOut && (
             <div className="create-log-form">
               <h3>Crear Nueva Bitácora</h3>
-              <form>
-                <label>Título:</label>
+              <form onSubmit={handleSubmit}>
+                <label>Título de la Bitácora:</label>
                 <input type="text" name="title" required />
-                <label>Descripción:</label>
-                <textarea name="description" required />
+                
+                <label>Fecha y Hora del Muestreo:</label>
+                <input type="datetime-local" name="datetime" required />
+                
+                <label>Localización Geográfica (Coordenadas GPS):</label>
+                <input type="text" name="location" placeholder="Ej: 6.2442° N, 75.5812° W" required />
+                
+                <label>Condiciones Climáticas:</label>
+                <input type="text" name="weather" placeholder="Ej: Soleado, Lluvia, Nublado" required />
+                
+                <label>Descripción del Hábitat:</label>
+                <textarea name="habitat" placeholder="Ej: Tipo de vegetación, altitud, etc." required></textarea>
+                
+                <label>Fotografías del Sitio de Muestreo:</label>
+                <input type="file" name="photos" multiple accept="image/*" />
+                
+                <label>Detalles de las Especies Recolectadas:</label>
+                <textarea name="speciesDetails" placeholder="Ej: Especies, cantidad, características" required></textarea>
+                
+                <label>Observaciones Adicionales:</label>
+                <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
+                
                 <button type="submit" className="submit-button">Guardar Bitácora</button>
               </form>
             </div>
@@ -96,8 +123,5 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
-
-
 
 
