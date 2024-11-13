@@ -85,35 +85,37 @@ const HomePage = () => {
         <div className="tab-content">
           {renderTabContent()}
           {showCreateLogForm && !isLoggedOut && (
-            <div className="create-log-form">
-              <h3>Crear Nueva Bitácora</h3>
-              <form onSubmit={handleSubmit}>
-                <label>Título de la Bitácora:</label>
-                <input type="text" name="title" required />
-                
-                <label>Fecha y Hora del Muestreo:</label>
-                <input type="datetime-local" name="datetime" required />
-                
-                <label>Localización Geográfica (Coordenadas GPS):</label>
-                <input type="text" name="location" placeholder="Ej: 6.2442° N, 75.5812° W" required />
-                
-                <label>Condiciones Climáticas:</label>
-                <input type="text" name="weather" placeholder="Ej: Soleado, Lluvia, Nublado" required />
-                
-                <label>Descripción del Hábitat:</label>
-                <textarea name="habitat" placeholder="Ej: Tipo de vegetación, altitud, etc." required></textarea>
-                
-                <label>Fotografías del Sitio de Muestreo:</label>
-                <input type="file" name="photos" multiple accept="image/*" />
-                
-                <label>Detalles de las Especies Recolectadas:</label>
-                <textarea name="speciesDetails" placeholder="Ej: Especies, cantidad, características" required></textarea>
-                
-                <label>Observaciones Adicionales:</label>
-                <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
-                
-                <button type="submit" className="submit-button">Guardar Bitácora</button>
-              </form>
+            <div className="modal-overlay" onClick={() => setShowCreateLogForm(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h3>Crear Nueva Bitácora</h3>
+                <form onSubmit={handleSubmit}>
+                  <label>Título de la Bitácora:</label>
+                  <input type="text" name="title" required />
+                  
+                  <label>Fecha y Hora del Muestreo:</label>
+                  <input type="datetime-local" name="datetime" required />
+                  
+                  <label>Localización Geográfica (Coordenadas GPS):</label>
+                  <input type="text" name="location" placeholder="Ej: 6.2442° N, 75.5812° W" required />
+                  
+                  <label>Condiciones Climáticas:</label>
+                  <input type="text" name="weather" placeholder="Ej: Soleado, Lluvia, Nublado" required />
+                  
+                  <label>Descripción del Hábitat:</label>
+                  <textarea name="habitat" placeholder="Ej: Tipo de vegetación, altitud, etc." required></textarea>
+                  
+                  <label>Fotografías del Sitio de Muestreo:</label>
+                  <input type="file" name="photos" multiple accept="image/*" />
+                  
+                  <label>Detalles de las Especies Recolectadas:</label>
+                  <textarea name="speciesDetails" placeholder="Ej: Especies, cantidad, características" required></textarea>
+                  
+                  <label>Observaciones Adicionales:</label>
+                  <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
+                  
+                  <button type="submit" className="submit-button">Guardar Bitácora</button>
+                </form>
+              </div>
             </div>
           )}
         </div>
@@ -123,5 +125,6 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
 
 
