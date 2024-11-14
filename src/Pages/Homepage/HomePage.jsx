@@ -50,7 +50,6 @@ const HomePage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lógica para guardar la bitácora en la base de datos
     console.log("Bitácora creada con éxito");
   };
 
@@ -107,8 +106,30 @@ const HomePage = () => {
                   <label>Fotografías del Sitio de Muestreo:</label>
                   <input type="file" name="photos" multiple accept="image/*" />
                   
-                  <label>Detalles de las Especies Recolectadas:</label>
-                  <textarea name="speciesDetails" placeholder="Ej: Especies, cantidad, características" required></textarea>
+                  <h4>Detalles de las Especies Recolectadas</h4>
+
+                  <label>Nombre Científico (si lo conoce):</label>
+                  <input type="text" name="scientificName" placeholder="Ej: Quercus robur" />
+
+                  <label>Nombre Común:</label>
+                  <input type="text" name="commonName" placeholder="Ej: Roble" />
+
+                  <label>Familia:</label>
+                  <input type="text" name="family" placeholder="Ej: Fagaceae" />
+
+                  <label>Cantidad de Muestras:</label>
+                  <input type="number" name="sampleQuantity" min="1" placeholder="Ej: 5" required />
+
+                  <label>Estado de la Planta:</label>
+                  <select name="plantCondition" required>
+                    <option value="">Seleccione una opción</option>
+                    <option value="viva">Viva</option>
+                    <option value="seca">Seca</option>
+                    <option value="otro">Otro</option>
+                  </select>
+
+                  <label>Fotografías de las Especies Recolectadas:</label>
+                  <input type="file" name="speciesPhotos" multiple accept="image/*" />
                   
                   <label>Observaciones Adicionales:</label>
                   <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
@@ -125,6 +146,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
-
-
