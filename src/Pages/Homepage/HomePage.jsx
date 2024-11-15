@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../Components/Firebase/Firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import './HomePage.css';
 
@@ -36,6 +36,74 @@ const HomePage = () => {
     window.location.href = "/";
   };
 
+  const uploadImageToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'bitacoras_usuario');
+    formData.append('api_key', '245919566724295');
+    formData.append('cloud_name', 'dpimogg4v');
+
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/dpimogg4v/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const bitacoraData = {
+      title: e.target.title.value,
+      datetime: e.target.datetime.value,
+      location: e.target.location.value,
+      weather: e.target.weather.value,
+      habitat: e.target.habitat.value,
+      sitePhotos: [],
+      speciesDetails: {
+        scientificName: e.target.scientificName.value,
+        commonName: e.target.commonName.value,
+        family: e.target.family.value,
+        sampleQuantity: e.target.sampleQuantity.value,
+        plantStatus: e.target.plantStatus.value,
+      },
+      observations: e.target.observations.value,
+      speciesPhotos: [], 
+      userId: currentUser.uid,
+    };
+
+    const siteFiles = e.target.sitePhotos.files;
+    const siteImageUploadPromises = Array.from(siteFiles).map(uploadImageToCloudinary);
+
+    const speciesFiles = e.target.speciesPhotos.files;
+    const speciesImageUploadPromises = Array.from(speciesFiles).map(uploadImageToCloudinary);
+
+    try {
+      const siteImageUrls = await Promise.all(siteImageUploadPromises);
+      const speciesImageUrls = await Promise.all(speciesImageUploadPromises);
+
+      bitacoraData.sitePhotos = siteImageUrls;
+      bitacoraData.speciesPhotos = speciesImageUrls;
+
+      const bitacorasCollection = collection(db, 'bitacoras');
+      await addDoc(bitacorasCollection, bitacoraData);
+
+      console.log('Bitácora creada con éxito:', bitacoraData);
+      alert('Bitácora creada con éxito.');
+    } catch (error) {
+      console.error('Error al crear la bitácora:', error);
+      alert('Hubo un error al crear la bitácora.');
+    }
+  };
+
   const renderTabContent = () => {
     if (isLoggedOut) {
       return <div className="message">Sesión cerrada. Vuelva a iniciar sesión para continuar.</div>;
@@ -46,11 +114,6 @@ const HomePage = () => {
     if (activeTab === 'searchLogs') {
       return <div className="content-section">Aquí puedes buscar en las bitácoras.</div>;
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Bitácora creada con éxito");
   };
 
   return (
@@ -102,34 +165,31 @@ const HomePage = () => {
                   
                   <label>Descripción del Hábitat:</label>
                   <textarea name="habitat" placeholder="Ej: Tipo de vegetación, altitud, etc." required></textarea>
-                  
+
                   <label>Fotografías del Sitio de Muestreo:</label>
-                  <input type="file" name="photos" multiple accept="image/*" />
+                  <input type="file" name="sitePhotos" multiple accept="image/*" required />
                   
-                  <h4>Detalles de las Especies Recolectadas</h4>
-
-                  <label>Nombre Científico (si lo conoce):</label>
-                  <input type="text" name="scientificName" placeholder="Ej: Quercus robur" />
-
+                  <label>Nombre Científico:</label>
+                  <input type="text" name="scientificName" placeholder="Ej: Solanum lycopersicum" />
+                  
                   <label>Nombre Común:</label>
-                  <input type="text" name="commonName" placeholder="Ej: Roble" />
-
+                  <input type="text" name="commonName" placeholder="Ej: Tomate" />
+                  
                   <label>Familia:</label>
-                  <input type="text" name="family" placeholder="Ej: Fagaceae" />
-
+                  <input type="text" name="family" placeholder="Ej: Solanaceae" />
+                  
                   <label>Cantidad de Muestras:</label>
-                  <input type="number" name="sampleQuantity" min="1" placeholder="Ej: 5" required />
-
+                  <input type="number" name="sampleQuantity" placeholder="Ej: 5" />
+                  
                   <label>Estado de la Planta:</label>
-                  <select name="plantCondition" required>
-                    <option value="">Seleccione una opción</option>
+                  <select name="plantStatus">
                     <option value="viva">Viva</option>
                     <option value="seca">Seca</option>
-                    <option value="otro">Otro</option>
+                    <option value="en crecimiento">En Crecimiento</option>
                   </select>
 
                   <label>Fotografías de las Especies Recolectadas:</label>
-                  <input type="file" name="speciesPhotos" multiple accept="image/*" />
+                  <input type="file" name="speciesPhotos" multiple accept="image/*" required />
                   
                   <label>Observaciones Adicionales:</label>
                   <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
