@@ -10,6 +10,7 @@ const HomePage = () => {
   const [activeTab, setActiveTab] = useState('');
   const [showCreateLogForm, setShowCreateLogForm] = useState(false);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -76,7 +77,7 @@ const HomePage = () => {
         plantStatus: e.target.plantStatus.value,
       },
       observations: e.target.observations.value,
-      speciesPhotos: [], 
+      speciesPhotos: [],
       userId: currentUser.uid,
     };
 
@@ -96,8 +97,11 @@ const HomePage = () => {
       const bitacorasCollection = collection(db, 'bitacoras');
       await addDoc(bitacorasCollection, bitacoraData);
 
+      setShowSuccessMessage(true);
+      setShowCreateLogForm(false);
+      e.target.reset();
+
       console.log('Bitácora creada con éxito:', bitacoraData);
-      alert('Bitácora creada con éxito.');
     } catch (error) {
       console.error('Error al crear la bitácora:', error);
       alert('Hubo un error al crear la bitácora.');
@@ -146,6 +150,7 @@ const HomePage = () => {
 
         <div className="tab-content">
           {renderTabContent()}
+          
           {showCreateLogForm && !isLoggedOut && (
             <div className="modal-overlay" onClick={() => setShowCreateLogForm(false)}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -196,6 +201,15 @@ const HomePage = () => {
                   
                   <button type="submit" className="submit-button">Guardar Bitácora</button>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {showSuccessMessage && (
+            <div className="modal-overlay" onClick={() => setShowSuccessMessage(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h3>¡Bitácora Creada con Éxito!</h3>
+                <button onClick={() => setShowSuccessMessage(false)}>Cerrar</button>
               </div>
             </div>
           )}

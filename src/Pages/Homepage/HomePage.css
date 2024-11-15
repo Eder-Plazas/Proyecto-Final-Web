@@ -176,6 +176,16 @@
   background-color: #357abd;
 }
 
+.success-modal {
+  background-color: #dff0d8;
+  color: #3c763d;
+  padding: 15px;
+  border-radius: 5px;
+  font-size: 1.2em;
+  text-align: center;
+  margin-top: 10px;
+}
+
 @media (max-width: 600px) {
   .create-log-modal {
     padding: 15px;
@@ -198,5 +208,9 @@
 
   .create-log-modal .submit-button {
     font-size: 0.9em;
+  }
+
+  .success-modal {
+    font-size: 1em;
   }
 }
