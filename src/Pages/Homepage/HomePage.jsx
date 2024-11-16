@@ -178,6 +178,11 @@ const HomePage = () => {
                   )}
                 </div>
                 <p><strong>Observaciones:</strong> {bitacora.observations}</p>
+                
+                <div className="bitacora-actions">
+                  <button onClick={() => handleEdit(bitacora.id)} className="btn-edit">Editar</button>
+                  <button onClick={() => handleDelete(bitacora.id)} className="btn-delete">Eliminar</button>
+                </div>
               </div>
             ))
           ) : (
