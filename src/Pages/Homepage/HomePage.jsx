@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../Components/Firebase/Firebase';
-import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import './HomePage.css';
 
@@ -11,6 +11,7 @@ const HomePage = () => {
   const [showCreateLogForm, setShowCreateLogForm] = useState(false);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [bitacoras, setBitacoras] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -30,6 +31,27 @@ const HomePage = () => {
 
     fetchUserData();
   }, []);
+
+  useEffect(() => {
+    const fetchBitacoras = async () => {
+      const currentUser = auth.currentUser;
+
+      if (currentUser) {
+        const bitacorasQuery = query(
+          collection(db, 'bitacoras'),
+          where('userId', '==', currentUser.uid)
+        );
+
+        const querySnapshot = await getDocs(bitacorasQuery);
+        const fetchedBitacoras = querySnapshot.docs.map(doc => doc.data());
+        setBitacoras(fetchedBitacoras);
+      }
+    };
+
+    if (activeTab === 'viewLogs') {
+      fetchBitacoras();
+    }
+  }, [activeTab]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -113,8 +135,58 @@ const HomePage = () => {
       return <div className="message">Sesión cerrada. Vuelva a iniciar sesión para continuar.</div>;
     }
     if (activeTab === 'viewLogs') {
-      return <div className="content-section">Aquí puedes ver las bitácoras.</div>;
+      return (
+        <div className="content-section">
+          {bitacoras.length > 0 ? (
+            bitacoras.map((bitacora, index) => (
+              <div key={index} className="bitacora-item">
+                <h3>{bitacora.title}</h3>
+                <p><strong>Fecha:</strong> {bitacora.datetime}</p>
+                <p><strong>Ubicación:</strong> {bitacora.location}</p>
+                <p><strong>Clima:</strong> {bitacora.weather}</p>
+                <p><strong>Hábitat:</strong> {bitacora.habitat}</p>
+                <div>
+                  <strong>Fotos del Sitio:</strong>
+                  {bitacora.sitePhotos && bitacora.sitePhotos.length > 0 ? (
+                    <div className="photos-container">
+                      {bitacora.sitePhotos.map((url, index) => (
+                        <img key={index} src={url} alt={`Sitio ${index}`} className="photo" />
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No hay fotos del sitio.</p>
+                  )}
+                </div>
+                <div>
+                  <strong>Detalles de la Especie:</strong>
+                  <p><strong>Nombre Científico:</strong> {bitacora.speciesDetails.scientificName}</p>
+                  <p><strong>Nombre Común:</strong> {bitacora.speciesDetails.commonName}</p>
+                  <p><strong>Familia:</strong> {bitacora.speciesDetails.family}</p>
+                  <p><strong>Cantidad de Muestras:</strong> {bitacora.speciesDetails.sampleQuantity}</p>
+                  <p><strong>Estado de la Planta:</strong> {bitacora.speciesDetails.plantStatus}</p>
+                </div>
+                <div>
+                  <strong>Fotos de la Especie:</strong>
+                  {bitacora.speciesPhotos && bitacora.speciesPhotos.length > 0 ? (
+                    <div className="photos-container">
+                      {bitacora.speciesPhotos.map((url, index) => (
+                        <img key={index} src={url} alt={`Especie ${index}`} className="photo" />
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No hay fotos de la especie.</p>
+                  )}
+                </div>
+                <p><strong>Observaciones:</strong> {bitacora.observations}</p>
+              </div>
+            ))
+          ) : (
+            <p>No tienes bitácoras registradas.</p>
+          )}
+        </div>
+      );
     }
+    
     if (activeTab === 'searchLogs') {
       return <div className="content-section">Aquí puedes buscar en las bitácoras.</div>;
     }
@@ -169,47 +241,34 @@ const HomePage = () => {
                   <input type="text" name="weather" placeholder="Ej: Soleado, Lluvia, Nublado" required />
                   
                   <label>Descripción del Hábitat:</label>
-                  <textarea name="habitat" placeholder="Ej: Tipo de vegetación, altitud, etc." required></textarea>
-
-                  <label>Fotografías del Sitio de Muestreo:</label>
-                  <input type="file" name="sitePhotos" multiple accept="image/*" required />
+                  <textarea name="habitat" placeholder="Ej: Bosque tropical, pradera..." required />
                   
                   <label>Nombre Científico:</label>
-                  <input type="text" name="scientificName" placeholder="Ej: Solanum lycopersicum" />
+                  <input type="text" name="scientificName" required />
                   
                   <label>Nombre Común:</label>
-                  <input type="text" name="commonName" placeholder="Ej: Tomate" />
+                  <input type="text" name="commonName" required />
                   
                   <label>Familia:</label>
-                  <input type="text" name="family" placeholder="Ej: Solanaceae" />
+                  <input type="text" name="family" required />
                   
                   <label>Cantidad de Muestras:</label>
-                  <input type="number" name="sampleQuantity" placeholder="Ej: 5" />
+                  <input type="number" name="sampleQuantity" required />
                   
                   <label>Estado de la Planta:</label>
-                  <select name="plantStatus">
-                    <option value="viva">Viva</option>
-                    <option value="seca">Seca</option>
-                    <option value="en crecimiento">En Crecimiento</option>
-                  </select>
-
-                  <label>Fotografías de las Especies Recolectadas:</label>
-                  <input type="file" name="speciesPhotos" multiple accept="image/*" required />
+                  <input type="text" name="plantStatus" placeholder="Ej: Saludable, Dañada, Marchita..." required />
                   
-                  <label>Observaciones Adicionales:</label>
-                  <textarea name="observations" placeholder="Comentarios adicionales"></textarea>
+                  <label>Observaciones:</label>
+                  <textarea name="observations" placeholder="Detalles adicionales..." required />
                   
-                  <button type="submit" className="submit-button">Guardar Bitácora</button>
+                  <label>Fotos del Sitio:</label>
+                  <input type="file" name="sitePhotos" accept="image/*" multiple />
+                  
+                  <label>Fotos de la Especie:</label>
+                  <input type="file" name="speciesPhotos" accept="image/*" multiple />
+                  
+                  <button type="submit">Guardar Bitácora</button>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {showSuccessMessage && (
-            <div className="modal-overlay" onClick={() => setShowSuccessMessage(false)}>
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h3>¡Bitácora Creada con Éxito!</h3>
-                <button onClick={() => setShowSuccessMessage(false)}>Cerrar</button>
               </div>
             </div>
           )}
