@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../Components/Firebase/Firebase';
-import { doc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import './HomePage.css';
 
@@ -43,7 +43,10 @@ const HomePage = () => {
         );
 
         const querySnapshot = await getDocs(bitacorasQuery);
-        const fetchedBitacoras = querySnapshot.docs.map(doc => doc.data());
+        const fetchedBitacoras = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setBitacoras(fetchedBitacoras);
       }
     };
@@ -56,7 +59,7 @@ const HomePage = () => {
   const handleLogout = async () => {
     await signOut(auth);
     setIsLoggedOut(true);
-    window.location.href = "/";
+    window.location.href = '/';
   };
 
   const uploadImageToCloudinary = async (file) => {
@@ -130,6 +133,16 @@ const HomePage = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'bitacoras', id));
+      setBitacoras(bitacoras.filter((bitacora) => bitacora.id !== id));
+      alert('Bitácora eliminada con éxito.');
+    } catch (error) {
+      console.error('Error al eliminar la bitácora:', error);
+    }
+  };
+
   const renderTabContent = () => {
     if (isLoggedOut) {
       return <div className="message">Sesión cerrada. Vuelva a iniciar sesión para continuar.</div>;
@@ -138,8 +151,8 @@ const HomePage = () => {
       return (
         <div className="content-section">
           {bitacoras.length > 0 ? (
-            bitacoras.map((bitacora, index) => (
-              <div key={index} className="bitacora-item">
+            bitacoras.map((bitacora) => (
+              <div key={bitacora.id} className="bitacora-item">
                 <h3>{bitacora.title}</h3>
                 <p><strong>Fecha:</strong> {bitacora.datetime}</p>
                 <p><strong>Ubicación:</strong> {bitacora.location}</p>
@@ -147,7 +160,7 @@ const HomePage = () => {
                 <p><strong>Hábitat:</strong> {bitacora.habitat}</p>
                 <div>
                   <strong>Fotos del Sitio:</strong>
-                  {bitacora.sitePhotos && bitacora.sitePhotos.length > 0 ? (
+                  {bitacora.sitePhotos.length > 0 ? (
                     <div className="photos-container">
                       {bitacora.sitePhotos.map((url, index) => (
                         <img key={index} src={url} alt={`Sitio ${index}`} className="photo" />
@@ -157,30 +170,11 @@ const HomePage = () => {
                     <p>No hay fotos del sitio.</p>
                   )}
                 </div>
-                <div>
-                  <strong>Detalles de la Especie:</strong>
-                  <p><strong>Nombre Científico:</strong> {bitacora.speciesDetails.scientificName}</p>
-                  <p><strong>Nombre Común:</strong> {bitacora.speciesDetails.commonName}</p>
-                  <p><strong>Familia:</strong> {bitacora.speciesDetails.family}</p>
-                  <p><strong>Cantidad de Muestras:</strong> {bitacora.speciesDetails.sampleQuantity}</p>
-                  <p><strong>Estado de la Planta:</strong> {bitacora.speciesDetails.plantStatus}</p>
-                </div>
-                <div>
-                  <strong>Fotos de la Especie:</strong>
-                  {bitacora.speciesPhotos && bitacora.speciesPhotos.length > 0 ? (
-                    <div className="photos-container">
-                      {bitacora.speciesPhotos.map((url, index) => (
-                        <img key={index} src={url} alt={`Especie ${index}`} className="photo" />
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No hay fotos de la especie.</p>
-                  )}
-                </div>
+
                 <p><strong>Observaciones:</strong> {bitacora.observations}</p>
                 
                 <div className="bitacora-actions">
-                  <button onClick={() => handleEdit(bitacora.id)} className="btn-edit">Editar</button>
+                  <button className="btn-edit">Editar</button>
                   <button onClick={() => handleDelete(bitacora.id)} className="btn-delete">Eliminar</button>
                 </div>
               </div>
@@ -191,7 +185,7 @@ const HomePage = () => {
         </div>
       );
     }
-    
+
     if (activeTab === 'searchLogs') {
       return <div className="content-section">Aquí puedes buscar en las bitácoras.</div>;
     }
@@ -202,32 +196,24 @@ const HomePage = () => {
       <header className="header">
         <h2>Bienvenido, {userRole} {username}!</h2>
       </header>
-      
+
       <div className="main-container">
         <div className="tab-container">
-          <button className="action-button" onClick={() => setShowCreateLogForm(!showCreateLogForm)}>
+          <button onClick={() => setShowCreateLogForm(!showCreateLogForm)} className="action-button">
             {showCreateLogForm ? 'Cancelar' : 'Crear Bitácora'}
           </button>
-          <button 
-            className={`tab-button ${activeTab === 'viewLogs' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('viewLogs')}
-          >
+          <button onClick={() => setActiveTab('viewLogs')} className={`tab-button ${activeTab === 'viewLogs' ? 'active' : ''}`}>
             Ver Bitácoras
           </button>
-          <button 
-            className={`tab-button ${activeTab === 'searchLogs' ? 'active' : ''}`} 
-            onClick={() => setActiveTab('searchLogs')}
-          >
+          <button onClick={() => setActiveTab('searchLogs')} className={`tab-button ${activeTab === 'searchLogs' ? 'active' : ''}`}>
             Buscar Bitácoras
           </button>
-          <button className="action-button logout-button" onClick={handleLogout}>
-            Cerrar Sesión
-          </button>
+          <button onClick={handleLogout} className="action-button logout-button">Cerrar Sesión</button>
         </div>
 
         <div className="tab-content">
           {renderTabContent()}
-          
+
           {showCreateLogForm && !isLoggedOut && (
             <div className="modal-overlay" onClick={() => setShowCreateLogForm(false)}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -235,7 +221,7 @@ const HomePage = () => {
                 <form onSubmit={handleSubmit}>
                   <label>Título de la Bitácora:</label>
                   <input type="text" name="title" required />
-                  
+
                   <label>Fecha y Hora del Muestreo:</label>
                   <input type="datetime-local" name="datetime" required />
                   
@@ -271,7 +257,7 @@ const HomePage = () => {
                   
                   <label>Fotos de la Especie:</label>
                   <input type="file" name="speciesPhotos" accept="image/*" multiple />
-                  
+
                   <button type="submit">Guardar Bitácora</button>
                 </form>
               </div>
