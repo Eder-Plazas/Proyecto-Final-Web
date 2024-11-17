@@ -134,14 +134,19 @@ const HomePage = () => {
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("¿Está seguro de que desea eliminar esta bitácora?");
+    if (!confirmDelete) return;
+  
     try {
       await deleteDoc(doc(db, 'bitacoras', id));
       setBitacoras(bitacoras.filter((bitacora) => bitacora.id !== id));
       alert('Bitácora eliminada con éxito.');
     } catch (error) {
       console.error('Error al eliminar la bitácora:', error);
+      alert('Hubo un error al intentar eliminar la bitácora.');
     }
   };
+  
 
   const renderTabContent = () => {
     if (isLoggedOut) {
@@ -151,37 +156,58 @@ const HomePage = () => {
       return (
         <div className="content-section">
           {bitacoras.length > 0 ? (
-            bitacoras.map((bitacora) => (
-              <div key={bitacora.id} className="bitacora-item">
-                <h3>{bitacora.title}</h3>
-                <p><strong>Fecha:</strong> {bitacora.datetime}</p>
-                <p><strong>Ubicación:</strong> {bitacora.location}</p>
-                <p><strong>Clima:</strong> {bitacora.weather}</p>
-                <p><strong>Hábitat:</strong> {bitacora.habitat}</p>
-                <div>
-                  <strong>Fotos del Sitio:</strong>
-                  {bitacora.sitePhotos.length > 0 ? (
-                    <div className="photos-container">
-                      {bitacora.sitePhotos.map((url, index) => (
-                        <img key={index} src={url} alt={`Sitio ${index}`} className="photo" />
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No hay fotos del sitio.</p>
-                  )}
-                </div>
+  bitacoras.map((bitacora) => (
+    <div key={bitacora.id} className="bitacora-item">
+      <h3>{bitacora.title}</h3>
+      <p><strong>Fecha:</strong> {bitacora.datetime}</p>
+      <p><strong>Ubicación:</strong> {bitacora.location}</p>
+      <p><strong>Clima:</strong> {bitacora.weather}</p>
+      <p><strong>Hábitat:</strong> {bitacora.habitat}</p>
+      
+      <p><strong>Nombre Científico:</strong> {bitacora.speciesDetails.scientificName}</p>
+      <p><strong>Nombre Común:</strong> {bitacora.speciesDetails.commonName}</p>
+      <p><strong>Familia:</strong> {bitacora.speciesDetails.family}</p>
+      <p><strong>Cantidad de Muestras:</strong> {bitacora.speciesDetails.sampleQuantity}</p>
+      <p><strong>Estado de la Planta:</strong> {bitacora.speciesDetails.plantStatus}</p>
+      
+      <p><strong>Observaciones:</strong> {bitacora.observations}</p>
 
-                <p><strong>Observaciones:</strong> {bitacora.observations}</p>
-                
-                <div className="bitacora-actions">
-                  <button className="btn-edit">Editar</button>
-                  <button onClick={() => handleDelete(bitacora.id)} className="btn-delete">Eliminar</button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No tienes bitácoras registradas.</p>
-          )}
+      <div>
+        <strong>Fotos del Sitio:</strong>
+        {bitacora.sitePhotos.length > 0 ? (
+          <div className="photos-container">
+            {bitacora.sitePhotos.map((url, index) => (
+              <img key={index} src={url} alt={`Sitio ${index}`} className="photo" />
+            ))}
+          </div>
+        ) : (
+          <p>No hay fotos del sitio.</p>
+        )}
+      </div>
+
+      <div>
+        <strong>Fotos de la Especie:</strong>
+        {bitacora.speciesPhotos.length > 0 ? (
+          <div className="photos-container">
+            {bitacora.speciesPhotos.map((url, index) => (
+              <img key={index} src={url} alt={`Especie ${index}`} className="photo" />
+            ))}
+          </div>
+        ) : (
+          <p>No hay fotos de la especie.</p>
+        )}
+      </div>
+
+      <div className="bitacora-actions">
+        <button className="btn-edit">Editar</button>
+        <button onClick={() => handleDelete(bitacora.id)} className="btn-delete">Eliminar</button>
+      </div>
+    </div>
+  ))
+) : (
+  <p>No tienes bitácoras registradas.</p>
+)}
+
         </div>
       );
     }
