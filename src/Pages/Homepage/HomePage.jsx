@@ -2,7 +2,95 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../Components/Firebase/Firebase';
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
+import Papa from 'papaparse';
+import { jsPDF } from "jspdf";
 import './HomePage.css';
+
+
+const EditBitacoraModal = ({ isOpen, onClose, bitacora, onSave }) => {
+  const [nombreCientifico, setNombreCientifico] = useState('');
+  const [nombreComun, setNombreComun] = useState('');
+  const [familia, setFamilia] = useState('');
+  const [cantidadMuestras, setCantidadMuestras] = useState('');
+  const [estadoPlanta, setEstadoPlanta] = useState('');
+  const [foto, setFoto] = useState('');
+
+  useEffect(() => {
+    if (bitacora) {
+      setNombreCientifico(bitacora.nombreCientifico);
+      setNombreComun(bitacora.nombreComun);
+      setFamilia(bitacora.familia);
+      setCantidadMuestras(bitacora.cantidadMuestras);
+      setEstadoPlanta(bitacora.estadoPlanta);
+      setFoto(bitacora.foto);
+    }
+  }, [bitacora, isOpen]);
+
+  const handleSave = () => {
+    const updatedBitacora = {
+      nombreCientifico,
+      nombreComun,
+      familia,
+      cantidadMuestras,
+      estadoPlanta,
+      foto,
+    };
+    onSave(updatedBitacora);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal">
+      <div className="modal-content">
+        <h2>Editar Bitácora</h2>
+        <form>
+          <label>Nombre Científico:</label>
+          <input
+            type="text"
+            value={nombreCientifico}
+            onChange={(e) => setNombreCientifico(e.target.value)}
+          />
+          <label>Nombre Común:</label>
+          <input
+            type="text"
+            value={nombreComun}
+            onChange={(e) => setNombreComun(e.target.value)}
+          />
+          <label>Familia:</label>
+          <input
+            type="text"
+            value={familia}
+            onChange={(e) => setFamilia(e.target.value)}
+          />
+          <label>Cantidad de Muestras:</label>
+          <input
+            type="number"
+            value={cantidadMuestras}
+            onChange={(e) => setCantidadMuestras(e.target.value)}
+          />
+          <label>Estado de la Planta:</label>
+          <input
+            type="text"
+            value={estadoPlanta}
+            onChange={(e) => setEstadoPlanta(e.target.value)}
+          />
+          <label>Foto:</label>
+          <input
+            type="text"
+            value={foto}
+            onChange={(e) => setFoto(e.target.value)}
+          />
+        </form>
+        <button onClick={handleSave}>Guardar</button>
+        <button onClick={onClose}>Cerrar</button>
+      </div>
+    </div>
+  );
+};
+
+
 
 const HomePage = () => {
   const [username, setUsername] = useState('');
@@ -12,6 +100,8 @@ const HomePage = () => {
   const [isLoggedOut, setIsLoggedOut] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [bitacoras, setBitacoras] = useState([]);
+  const [currentEditingLog, setCurrentEditingLog] = useState(null);
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -61,6 +151,106 @@ const HomePage = () => {
     setIsLoggedOut(true);
     window.location.href = '/';
   };
+
+  const handleEdit = (bitacora) => {
+    setCurrentEditingLog(bitacora);
+    setShowCreateLogForm(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+
+    const updatedBitacoraData = {
+      title: e.target.title.value,
+      datetime: e.target.datetime.value,
+      location: e.target.location.value,
+      weather: e.target.weather.value,
+      habitat: e.target.habitat.value,
+      speciesDetails: {
+        scientificName: e.target.scientificName.value,
+        commonName: e.target.commonName.value,
+        family: e.target.family.value,
+        sampleQuantity: e.target.sampleQuantity.value,
+        plantStatus: e.target.plantStatus.value,
+      },
+      observations: e.target.observations.value,
+    };
+
+    try {
+      const bitacoraDocRef = doc(db, 'bitacoras', currentEditingLog.id);
+      await updateDoc(bitacoraDocRef, updatedBitacoraData);
+
+      setBitacoras((prevBitacoras) =>
+        prevBitacoras.map((bitacora) =>
+          bitacora.id === currentEditingLog.id
+            ? { ...bitacora, ...updatedBitacoraData }
+            : bitacora
+        )
+      );
+
+      setShowCreateLogForm(false);
+      setCurrentEditingLog(null);
+      alert('Bitácora actualizada con éxito.');
+    } catch (error) {
+      console.error('Error al actualizar la bitácora:', error);
+      alert('Hubo un error al actualizar la bitácora.');
+    }
+  };
+
+  const ExportCSVButton = ({ bitacora }) => {
+    const exportToCSV = () => {
+      const csvData = Papa.unparse([bitacora]);
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${bitacora.title || 'bitacora'}.csv`);
+      link.click();
+    };
+  
+    return <button onClick={exportToCSV}>Exportar a CSV</button>;
+  };
+  
+  const ExportPDFButton = ({ bitacora }) => {
+    const exportToPDF = () => {
+      const doc = new jsPDF();
+  
+      // Configurar contenido del PDF
+      doc.setFontSize(14);
+      doc.text("Detalles de la Bitácora", 10, 10);
+      doc.setFontSize(12);
+      doc.text(`Título: ${bitacora.title || 'N/A'}`, 10, 20);
+      doc.text(`Fecha: ${bitacora.datetime || 'N/A'}`, 10, 30);
+      doc.text(`Localización: ${bitacora.location || 'N/A'}`, 10, 40);
+      doc.text(`Clima: ${bitacora.weather || 'N/A'}`, 10, 50);
+      doc.text(`Hábitat: ${bitacora.habitat || 'N/A'}`, 10, 60);
+      doc.text(`Observaciones: ${bitacora.observations || 'N/A'}`, 10, 70);
+  
+      // Descargar el archivo PDF
+      doc.save(`${bitacora.title || 'bitacora'}.pdf`);
+    };
+  
+    return <button onClick={exportToPDF}>Exportar a PDF</button>;
+  };
+  
+  const BitacoraList = ({ bitacoras }) => {
+    return (
+      <div>
+        {bitacoras.map((bitacora) => (
+          <div key={bitacora.id} className="bitacora-card">
+            <h3>{bitacora.title}</h3>
+            <p><strong>Fecha:</strong> {bitacora.datetime}</p>
+            <p><strong>Localización:</strong> {bitacora.location}</p>
+            <p><strong>Clima:</strong> {bitacora.weather}</p>
+            <ExportCSVButton bitacora={bitacora} />
+            <ExportPDFButton bitacora={bitacora} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+  
+  
 
   const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
@@ -147,7 +337,6 @@ const HomePage = () => {
     }
   };
   
-
   const renderTabContent = () => {
     if (isLoggedOut) {
       return <div className="message">Sesión cerrada. Vuelva a iniciar sesión para continuar.</div>;
@@ -199,7 +388,8 @@ const HomePage = () => {
       </div>
 
       <div className="bitacora-actions">
-        <button className="btn-edit">Editar</button>
+      <button onClick={() => handleEdit(bitacora)} className="btn-edit">Editar</button>
+
         <button onClick={() => handleDelete(bitacora.id)} className="btn-delete">Eliminar</button>
       </div>
     </div>
