@@ -101,6 +101,8 @@ const HomePage = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [bitacoras, setBitacoras] = useState([]);
   const [currentEditingLog, setCurrentEditingLog] = useState(null);
+  const [filteredBitacoras, setFilteredBitacoras] = useState([]);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -121,6 +123,7 @@ const HomePage = () => {
 
     fetchUserData();
   }, []);
+
 
   useEffect(() => {
     const fetchBitacoras = async () => {
@@ -146,6 +149,8 @@ const HomePage = () => {
     }
   }, [activeTab]);
 
+  
+
   const handleLogout = async () => {
     await signOut(auth);
     setIsLoggedOut(true);
@@ -156,6 +161,49 @@ const HomePage = () => {
     setCurrentEditingLog(bitacora);
     setShowCreateLogForm(true);
   };
+
+  const SearchBitacoraModal = ({ isOpen, onClose, onSearch }) => {
+    const [searchField, setSearchField] = useState('');
+    const [searchValue, setSearchValue] = useState('');
+  
+    const handleSearch = () => {
+      onSearch(searchField, searchValue);
+      onClose();
+    };
+  
+    if (!isOpen) return null;
+  
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <h2>Buscar Bitácora</h2>
+          <form>
+            <label>Campo de Búsqueda:</label>
+            <select
+              value={searchField}
+              onChange={(e) => setSearchField(e.target.value)}
+            >
+              <option value="">Seleccionar...</option>
+              <option value="title">Título</option>
+              <option value="datetime">Fecha</option>
+              <option value="location">Ubicación</option>
+              <option value="speciesDetails.scientificName">Nombre Científico</option>
+            </select>
+  
+            <label>Valor de Búsqueda:</label>
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          </form>
+          <button onClick={handleSearch}>Buscar</button>
+          <button onClick={onClose}>Cerrar</button>
+        </div>
+      </div>
+    );
+  };
+  
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
@@ -197,60 +245,24 @@ const HomePage = () => {
     }
   };
 
-  const ExportCSVButton = ({ bitacora }) => {
-    const exportToCSV = () => {
-      const csvData = Papa.unparse([bitacora]);
-      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${bitacora.title || 'bitacora'}.csv`);
-      link.click();
-    };
-  
-    return <button onClick={exportToCSV}>Exportar a CSV</button>;
-  };
-  
-  const ExportPDFButton = ({ bitacora }) => {
-    const exportToPDF = () => {
-      const doc = new jsPDF();
-  
-      // Configurar contenido del PDF
-      doc.setFontSize(14);
-      doc.text("Detalles de la Bitácora", 10, 10);
-      doc.setFontSize(12);
-      doc.text(`Título: ${bitacora.title || 'N/A'}`, 10, 20);
-      doc.text(`Fecha: ${bitacora.datetime || 'N/A'}`, 10, 30);
-      doc.text(`Localización: ${bitacora.location || 'N/A'}`, 10, 40);
-      doc.text(`Clima: ${bitacora.weather || 'N/A'}`, 10, 50);
-      doc.text(`Hábitat: ${bitacora.habitat || 'N/A'}`, 10, 60);
-      doc.text(`Observaciones: ${bitacora.observations || 'N/A'}`, 10, 70);
-  
-      // Descargar el archivo PDF
-      doc.save(`${bitacora.title || 'bitacora'}.pdf`);
-    };
-  
-    return <button onClick={exportToPDF}>Exportar a PDF</button>;
-  };
-  
-  const BitacoraList = ({ bitacoras }) => {
-    return (
-      <div>
-        {bitacoras.map((bitacora) => (
-          <div key={bitacora.id} className="bitacora-card">
-            <h3>{bitacora.title}</h3>
-            <p><strong>Fecha:</strong> {bitacora.datetime}</p>
-            <p><strong>Localización:</strong> {bitacora.location}</p>
-            <p><strong>Clima:</strong> {bitacora.weather}</p>
-            <ExportCSVButton bitacora={bitacora} />
-            <ExportPDFButton bitacora={bitacora} />
-          </div>
-        ))}
-      </div>
-    );
-  };
-  
-  
+
+
+const BitacoraList = ({ bitacoras }) => {
+  return (
+    <div>
+      {bitacoras.map((bitacora) => (
+        <div key={bitacora.id} className="bitacora-card">
+          <h3>{bitacora.title}</h3>
+          <p><strong>Fecha:</strong> {bitacora.datetime}</p>
+          <p><strong>Localización:</strong> {bitacora.location}</p>
+          <p><strong>Clima:</strong> {bitacora.weather}</p>
+          <ExportCSVButton bitacora={bitacora} />
+          <ExportPDFButton bitacora={bitacora} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
   const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();

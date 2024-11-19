@@ -30,7 +30,6 @@ const Login = () => {
 
         localStorage.setItem('userId', user.uid);
 
-        
         const docRef = doc(db, "usuarios", user.uid); 
         const docSnap = await getDoc(docRef);
         
@@ -54,40 +53,45 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Iniciar sesión</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label htmlFor="username">Correo electrónico:</label> 
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="input-group">
-          <label htmlFor="password">Contraseña:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Iniciar sesión</button>
-        <p className="register-link">
-          ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
-        </p>
-      </form>
-    </div>
+    <>
+      <header className="eco-notas-header">
+        <h1 className="eco-notas-title">EcoNotas</h1>
+      </header>
+
+      <div className="login-container">
+        <h2>Iniciar sesión</h2>
+        {error && <p className="error">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="username">Correo electrónico:</label> 
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="password">Contraseña:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Iniciar sesión</button>
+          <p className="register-link">
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
+          </p>
+        </form>
+      </div>
+    </>
   );
 };
 
 export default Login;
-
